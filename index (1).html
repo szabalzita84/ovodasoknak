@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pontgyűjtő osztály</title>
+<style>
+:root{--sky:#c9ecff;--grass:#7cc96b;--sun:#ffd23f;--coral:#ff6b6b;--ink:#23305a;--card:#fffdf5;--line:#23305a22;--blue:#3d7bff}
+*{box-sizing:border-box}
+html{font-size:18px}
+body{margin:0;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(var(--sky),#eaf8ff 60%,#d6f2c8);min-height:100vh}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;border-radius:14px;padding:.55em 1em;background:#fff;box-shadow:0 3px 0 var(--line);font-weight:700}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(2px);box-shadow:none}
+:focus-visible{outline:4px solid var(--blue);outline-offset:2px}
+.hide{display:none!important}
+header{position:sticky;top:0;z-index:5;background:#fffdf5ee;backdrop-filter:blur(6px);padding:.6rem 1rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;border-bottom:3px solid var(--sun)}
+header h1{font-size:1.4rem;margin:0 auto 0 0}
+header .date{font-weight:700;background:var(--sun);padding:.3em .8em;border-radius:99px}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem 1rem;align-items:center}
+.bar input{border:3px solid var(--line);border-radius:14px;padding:.5em .8em;background:#fff;min-width:0;flex:1 1 11rem}
+.hint{flex:1 0 100%;font-size:.85rem;opacity:.75;margin:0}
+.primary{background:var(--coral);color:#fff}
+.green{background:var(--grass)}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;padding:0 1rem 2rem}
+.card{background:var(--card);border-radius:22px;padding:.8rem;box-shadow:0 6px 0 var(--line);display:flex;flex-direction:column;gap:.5rem}
+.top{display:flex;align-items:center;gap:.6rem}
+.av{font-size:2.4rem;line-height:1;background:#fff;border-radius:50%;width:3.4rem;height:3.4rem;padding:0;display:grid;place-items:center}
+.nm{font-size:1.35rem;font-weight:800;flex:1;text-align:left;background:none;box-shadow:none;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x{background:none;box-shadow:none;opacity:.5;padding:.2em .5em}
+.cnt{display:flex;gap:.8rem;font-weight:700}
+.cnt b{font-size:1.5rem}
+.btns{display:flex;gap:.5rem}
+.plus{flex:1;font-size:1.7rem;background:var(--grass);padding:.3em}
+.scene{position:relative;height:130px;border-radius:16px;overflow:hidden;background:linear-gradient(#bfe8ff,#e9f9ff)}
+.fig{position:absolute;font-size:2.2rem;line-height:1;transition:all .7s cubic-bezier(.3,1.5,.5,1)}
+.path:after{content:"";position:absolute;left:0;right:0;bottom:0;height:45px;background:var(--grass);border-top:4px solid #5aa94c}
+.path .road{position:absolute;left:4%;right:14%;bottom:14px;height:0;border-top:6px dotted #fff;z-index:1}
+.castle{position:absolute;right:3%;bottom:10px;font-size:3.6rem;z-index:1}
+.path .fig{bottom:18px;z-index:2}
+.tree{background:linear-gradient(#bfe8ff,#e6f7d6)}
+.tree .trunk{position:absolute;left:50%;bottom:0;width:26px;height:100%;margin-left:-13px;background:#9b6a3c;border-radius:10px 10px 0 0}
+.tree .top-r{position:absolute;left:50%;top:2px;transform:translateX(-50%);font-size:2rem}
+.tree .fig{left:50%;margin-left:-.55em}
+.tree .leaf{position:absolute;font-size:2.2rem;opacity:.9}
+.berry{background:linear-gradient(#d9f4c8,#b7e49f)}
+.basket{position:absolute;left:8%;right:34%;bottom:8px;height:78px;border-radius:8px 8px 30px 30px;background:#c98b4b;border:4px solid #8d5a2b;overflow:hidden;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;justify-content:center;padding:2px;font-size:1.1rem;line-height:1}
+.berry .bush{position:absolute;right:4%;bottom:6px;font-size:2.4rem}
+.berry .fig{right:20%;bottom:50px;font-size:1.8rem}
+.done{text-align:center;font-weight:800;color:#b06a00}
+#setup{max-width:60rem;margin:0 auto;padding:1.2rem}
+#setup h1{font-size:2.2rem;text-align:center;margin:.2em 0}
+.grp{background:var(--card);border-radius:22px;padding:1rem;margin:1rem 0;box-shadow:0 6px 0 var(--line)}
+.grp h2{margin:0 0 .6rem;font-size:1.3rem}
+.opts{display:flex;flex-wrap:wrap;gap:.7rem}
+.opt{flex:1 1 12rem;padding:.8em;border:4px solid transparent;font-size:1.1rem;background:#fff}
+.opt .e{display:block;font-size:2rem;margin-bottom:.2em}
+.opt.on{border-color:var(--coral);background:#fff1ee}
+.goal{display:flex;gap:.7rem;align-items:center;font-weight:700;flex-wrap:wrap}
+.goal input{width:5rem;border:3px solid var(--line);border-radius:12px;padding:.4em;text-align:center}
+.start{display:block;margin:1rem auto;font-size:1.5rem;padding:.6em 2em}
+.warn{background:#fff3c4;padding:.6rem 1rem;font-weight:700;text-align:center}
+#modal{position:fixed;inset:0;background:#23305acc;z-index:20;display:grid;place-items:center;padding:1rem}
+#modal .box{background:var(--card);border-radius:24px;padding:1.2rem;max-width:44rem;width:100%;max-height:90vh;overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:.45em .5em;text-align:left;border-bottom:2px solid var(--line)}
+td.n,th.n{text-align:right}
+details{margin:.4rem 0}
+summary{cursor:pointer;font-weight:700}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (prefers-reduced-motion:reduce){.fig{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+<div id="warn" class="warn hide"></div>
+
+<section id="setup" class="hide">
+  <h1>🎉 Pontgyűjtő osztály</h1>
+  <p style="text-align:center;margin:0">Válaszd ki, milyen legyen az osztály játéka!</p>
+  <div class="grp"><h2>1. Hogyan jelenjenek meg a tanulók?</h2><div class="opts" data-k="look">
+    <button class="opt" data-a="pick" data-v="mixed"><span class="e">🦊🌷</span>Fiúk kisállatok, lányok virágok</button>
+    <button class="opt" data-a="pick" data-v="animals"><span class="e">🦊🐸🐼</span>Mindenki kisállat</button>
+    <button class="opt" data-a="pick" data-v="flowers"><span class="e">🌷🌻🌹</span>Virágok</button>
+    <button class="opt" data-a="pick" data-v="shapes"><span class="e">🔴🟦⭐</span>Színes formák</button></div></div>
+  <div class="grp"><h2>2. Milyen legyen a jutalom-animáció?</h2><div class="opts" data-k="anim">
+    <button class="opt" data-a="pick" data-v="confetti"><span class="e">🎊</span>Konfetti</button>
+    <button class="opt" data-a="pick" data-v="petals"><span class="e">🌸</span>Virágszirom-eső</button>
+    <button class="opt" data-a="pick" data-v="stars"><span class="e">✨</span>Csillagfény</button></div></div>
+  <div class="grp"><h2>3. Melyik világban haladjanak?</h2><div class="opts" data-k="world">
+    <button class="opt" data-a="pick" data-v="path"><span class="e">🏰</span>Ösvény a kastély felé</button>
+    <button class="opt" data-a="pick" data-v="tree"><span class="e">🌳</span>Fára mászás</button>
+    <button class="opt" data-a="pick" data-v="berry"><span class="e">🍓</span>Erdei bogyógyűjtés</button></div></div>
+  <div class="grp goal"><label for="goal">Hány pont kell a célig?</label><input id="goal" type="number" min="3" max="100" value="20">
+    <label><input type="checkbox" id="motion" checked> Animációk bekapcsolva</label></div>
+  <button class="start primary" data-a="start">Indulás!</button>
+</section>
+
+<main id="main" class="hide">
+  <header>
+    <h1>🎉 Pontgyűjtő osztály</h1>
+    <span class="date" id="date"></span>
+    <button data-a="undoLast" title="Az utolsó pont visszavonása">↶ Utolsó visszavonása</button>
+    <button data-a="summary">📊 Napi összesítő</button>
+    <button data-a="newday">🌅 Új nap</button>
+    <button data-a="export">⬇ Export</button>
+    <button data-a="import">⬆ Import</button>
+    <button data-a="full" title="Teljes képernyő">⛶</button>
+    <button data-a="settings" title="Beállítások">⚙</button>
+    <input type="file" id="file" accept="application/json,.json" class="hide">
+  </header>
+  <form class="bar" id="addf">
+    <input id="nick" maxlength="20" placeholder="Új tanuló beceneve" autocomplete="off" aria-label="Becenév">
+    <select id="gender" aria-label="Fiú vagy lány" style="border:3px solid var(--line);border-radius:14px;padding:.5em;background:#fff;font:inherit"><option value="f">Fiú</option><option value="l">Lány</option></select>
+    <button class="green" type="submit">➕ Felvétel</button>
+    <input id="act" list="acts" maxlength="30" placeholder="Tevékenység (pl. házi feladat)" aria-label="Tevékenység">
+    <datalist id="acts"><option value="házi feladat"><option value="csoportmunka"><option value="segítség"><option value="szép viselkedés"><option value="jelentkezés"></datalist>
+    <p class="hint">Kérjük, ne írj valódi teljes nevet – használj becenevet! A pontok a megadott tevékenységhez kerülnek.</p>
+  </form>
+  <div id="grid"></div>
+</main>
+<div id="modal" class="hide"></div>
+
+<script>
+const KEY='pontgyujto-v1';
+const AV={animals:['🦊','🐸','🐼','🐯','🐵','🐰','🦁','🐨','🐷','🐙','🦄','🐢','🐧','🦉','🐶','🐱'],
+flowers:['🌷','🌻','🌹','🌼','🌸','🪻','🌺','💐','🪷','🍀'],
+shapes:['🔴','🟠','🟡','🟢','🔵','🟣','🟥','🟧','🟨','🟩','🟦','🟪','⭐','💠','🔶','🔷']};
+const today=()=>new Date().toLocaleDateString('sv-SE');
+const listFor=s=>S.look==='mixed'?(s.g==='l'?AV.flowers:AV.animals):AV[S.look];
+const def=()=>({v:1,started:false,look:'mixed',anim:'confetti',world:'path',goal:20,motion:true,date:today(),students:[],log:[],days:[],nid:1});
+let S=def(),canSave=true;
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&d.v===1&&Array.isArray(d.students))S=Object.assign(def(),d)}}
+catch(e){canSave=false;showWarn('A böngésző nem engedi az adatok mentését (vagy sérült a mentés). Használd az Exportot, hogy ne vesszenek el az adatok.')}}
+function save(){if(!canSave)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){canSave=false;showWarn('A mentés nem sikerült. Használd az Exportot!')}}
+function showWarn(t){const w=$('#warn');w.textContent=t;w.classList.remove('hide')}
+const hu=d=>new Date(d+'T12:00:00').toLocaleDateString('hu-HU',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+
+/* ---------- megjelenítés ---------- */
+function render(){
+  $('#setup').classList.toggle('hide',S.started);
+  $('#main').classList.toggle('hide',!S.started);
+  document.querySelectorAll('.opts').forEach(g=>g.querySelectorAll('.opt').forEach(b=>b.classList.toggle('on',S[g.dataset.k]===b.dataset.v)));
+  $('#goal').value=S.goal;$('#motion').checked=S.motion;
+  if(!S.started)return;
+  $('#date').textContent=hu(S.date);
+  const g=$('#grid');
+  g.innerHTML=S.students.length?S.students.map(card).join(''):'<p style="grid-column:1/-1;text-align:center;font-size:1.3rem">Még nincs tanuló. Írj be egy becenevet fent, és nyomd meg a „Felvétel” gombot!</p>';
+}
+function card(s){
+  const p=Math.min(s.total/S.goal,1),done=s.total>=S.goal;
+  return `<article class="card" data-id="${s.id}">
+  <div class="top"><button class="av" data-a="avatar" data-id="${s.id}" title="Figura váltása">${s.av}</button>
+  <button class="nm" data-a="rename" data-id="${s.id}" title="Átnevezés">${esc(s.name)}</button>
+  <button class="x" data-a="gender" data-id="${s.id}" title="Fiú / lány váltása" style="opacity:.8">${s.g==='l'?'Lány':'Fiú'}</button>
+  <button class="x" data-a="del" data-id="${s.id}" title="Törlés" aria-label="Törlés">✕</button></div>
+  <div class="cnt"><span>Ma: <b>${s.today}</b></span><span>Összesen: <b>${s.total}</b> / ${S.goal}</span></div>
+  ${scene(s,p)}
+  ${done?'<div class="done">🏆 Cél elérve!</div>':''}
+  <div class="btns"><button class="plus" data-a="add" data-id="${s.id}">+1</button><button data-a="undo" data-id="${s.id}" title="Utolsó pont visszavonása">↶ Visszavonás</button></div></article>`;
+}
+function scene(s,p){
+  if(S.world==='path')return `<div class="scene path"><div class="road"></div><span class="castle">🏰</span><span class="fig" style="left:${(4+p*68).toFixed(1)}%">${s.av}</span></div>`;
+  if(S.world==='tree')return `<div class="scene tree"><div class="trunk"></div><span class="leaf" style="left:22%;top:18%">🍃</span><span class="leaf" style="right:22%;top:48%">🍃</span><span class="top-r">${p>=1?'🏆':'🍎'}</span><span class="fig" style="bottom:${(2+p*68).toFixed(1)}%">${s.av}</span></div>`;
+  const n=Math.min(s.total,40);
+  return `<div class="scene berry"><span class="bush">🌿</span><div class="basket">${'🍓'.repeat(n)}</div><span class="fig">${s.av}</span></div>`;
+}
+
+/* ---------- műveletek ---------- */
+const find=id=>S.students.find(s=>s.id==id);
+function add(id){
+  const s=find(id);if(!s)return;
+  s.today++;s.total++;
+  S.log.push({id:s.id,act:($('#act').value||'').trim().slice(0,30)});
+  save();render();
+  const el=document.querySelector(`.card[data-id="${id}"]`),r=el?el.getBoundingClientRect():{left:innerWidth/2,top:200,width:0,height:0};
+  burst(r.left+r.width/2,r.top+r.height/2,s.total%5===0||s.total===S.goal);
+}
+function removeLog(i){const e=S.log[i],s=find(e.id);S.log.splice(i,1);if(s){s.today=Math.max(0,s.today-1);s.total=Math.max(0,s.total-1)}save();render()}
+function undo(id){for(let i=S.log.length-1;i>=0;i--)if(S.log[i].id==id)return removeLog(i);}
+function addStudent(name,g){
+  name=name.trim().slice(0,20);if(!name)return;
+  if(/\S+\s+\S+/.test(name)&&!confirm('Ez valódi teljes névnek tűnik. Biztosan ezt használod? Inkább válassz becenevet.'))return;
+  const st={id:S.nid++,name,g:g==='l'?'l':'f',av:'',today:0,total:0},list=listFor(st);
+  st.av=list[S.students.filter(x=>x.g===st.g).length%list.length];S.students.push(st);save();render();
+}
+function rows(){return S.students.map(s=>({name:s.name,today:s.today,total:s.total}))}
+function acts(){const m={};S.log.forEach(e=>{const k=e.act||'(nincs megadva)';m[k]=(m[k]||0)+1});return m}
+function table(r){const mx=Math.max(0,...r.map(x=>x.today));
+  return '<table><tr><th>Tanuló</th><th class="n">Ma</th><th class="n">Összesen</th></tr>'+r.slice().sort((a,b)=>b.today-a.today).map(x=>`<tr><td>${esc(x.name)}${mx>0&&x.today===mx?' 🌟':''}</td><td class="n">${x.today}</td><td class="n">${x.total}</td></tr>`).join('')+'</table>'}
+function actList(m){const k=Object.keys(m);return k.length?'<p>'+k.map(a=>`<b>${esc(a)}</b>: ${m[a]}`).join(' &nbsp;•&nbsp; ')+'</p>':''}
+function modal(h){const m=$('#modal');m.innerHTML=`<div class="box" role="dialog">${h}<p style="text-align:right"><button class="primary" data-a="close">Bezár</button></p></div>`;m.classList.remove('hide')}
+function summary(){
+  const old=S.days.slice().reverse().map(d=>`<details><summary>${hu(d.date)}</summary>${table(d.rows)}${actList(d.acts||{})}</details>`).join('');
+  modal(`<h2>📊 Napi összesítő – ${hu(S.date)}</h2>${S.students.length?table(rows()):'<p>Még nincs tanuló.</p>'}${actList(acts())}${old?'<h3>Korábbi napok</h3>'+old:''}`);
+}
+function newDay(){
+  if(!confirm('Új napot kezdesz? A mai pontok nullázódnak és bekerülnek az archívumba. Az összpontok megmaradnak.'))return;
+  if(S.log.length)S.days.push({date:S.date,rows:rows(),acts:acts()});
+  S.students.forEach(s=>s.today=0);S.log=[];S.date=today();save();render();
+}
+function exportJ(){
+  const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'}),a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=`pontgyujto-${today()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function importJ(f){
+  const r=new FileReader();r.onload=()=>{try{
+    const d=JSON.parse(r.result);
+    if(!d||d.v!==1||!Array.isArray(d.students))throw 0;
+    if(!confirm('Az import felülírja a jelenlegi adatokat. Folytatod?'))return;
+    d.students.forEach(s=>{s.name=String(s.name).slice(0,20);s.today=+s.today||0;s.total=+s.total||0});
+    S=Object.assign(def(),d,{started:true});save();render();
+  }catch(e){alert('Ez a fájl nem megfelelő pontgyűjtő mentés.')}};r.readAsText(f);
+}
+
+/* ---------- események ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;
+  const a=b.dataset.a,id=b.dataset.id;
+  if(a==='pick'){S[b.parentElement.dataset.k]=b.dataset.v;save();render()}
+  else if(a==='start'){S.goal=Math.min(100,Math.max(3,+$('#goal').value||20));S.motion=$('#motion').checked;S.started=true;
+    S.students.forEach((s,i)=>{const l=listFor(s);if(!l.includes(s.av))s.av=l[i%l.length]});save();render()}
+  else if(a==='settings'){S.started=false;render()}
+  else if(a==='add')add(id);
+  else if(a==='undo')undo(id);
+  else if(a==='undoLast'){if(S.log.length)removeLog(S.log.length-1)}
+  else if(a==='avatar'){const s=find(id),l=listFor(s);s.av=l[(l.indexOf(s.av)+1)%l.length];save();render()}
+  else if(a==='gender'){const s=find(id);s.g=s.g==='l'?'f':'l';const l=listFor(s);s.av=l[Math.floor(Math.random()*l.length)];save();render()}
+  else if(a==='rename'){const s=find(id),n=prompt('Új becenév:',s.name);if(n&&n.trim()){s.name=n.trim().slice(0,20);save();render()}}
+  else if(a==='del'){const s=find(id);if(confirm(`Törlöd: ${s.name}? A pontjai is elvesznek.`)){S.students=S.students.filter(x=>x!==s);S.log=S.log.filter(x=>x.id!=id);save();render()}}
+  else if(a==='summary')summary();
+  else if(a==='newday')newDay();
+  else if(a==='export')exportJ();
+  else if(a==='import')$('#file').click();
+  else if(a==='full'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
+  else if(a==='close')$('#modal').classList.add('hide');
+});
+$('#addf').addEventListener('submit',e=>{e.preventDefault();addStudent($('#nick').value,$('#gender').value);$('#nick').value='';$('#nick').focus()});
+$('#file').addEventListener('change',e=>{if(e.target.files[0])importJ(e.target.files[0]);e.target.value=''});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('#modal').classList.add('hide')});
+
+/* ---------- animációk ---------- */
+const cv=$('#fx'),cx=cv.getContext('2d');let P=[],run=false;
+function size(){cv.width=innerWidth;cv.height=innerHeight}size();addEventListener('resize',size);
+const COL=['#ff6b6b','#ffd23f','#3d7bff','#7cc96b','#b36bff','#ff9f43'];
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function burst(x,y,big){
+  if(!S.motion)return;
+  const slow=matchMedia('(prefers-reduced-motion:reduce)').matches,k=slow?.25:1,life=big?210:110,n=Math.round((big?130:50)*k);
+  for(let i=0;i<n;i++){
+    if(S.anim==='confetti')P.push({t:'c',x,y,vx:rnd(-7,7),vy:rnd(-12,-3),g:.28,r:rnd(0,6),vr:rnd(-.3,.3),s:rnd(7,13),c:COL[i%6],l:life});
+    else if(S.anim==='petals')P.push({t:'p',x:x+rnd(-260,260),y:rnd(-200,-10),vx:0,vy:rnd(1.5,3.2),ph:rnd(0,6),r:rnd(0,6),vr:rnd(-.05,.05),s:rnd(9,16),c:['#ffb3c7','#ff8fb1','#ffd1e0','#fff'][i%4],l:life+60});
+    else{const a=rnd(0,6.28),v=rnd(1,6);P.push({t:'s',x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:0,ph:rnd(0,6),s:rnd(8,20),c:i%3?'#ffd23f':'#fff6b0',l:life})}
+  }
+  if(!run){run=true;requestAnimationFrame(tick)}
+}
+function star(x,y,r){cx.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4,d=i%2?r*.25:r;cx.lineTo(x+Math.cos(a)*d,y+Math.sin(a)*d)}cx.closePath();cx.fill()}
+function tick(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  P=P.filter(p=>--p.l>0&&p.y<cv.height+40);
+  for(const p of P){
+    cx.save();
+    if(p.t==='c'){p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.vx*=.99;p.r+=p.vr;cx.globalAlpha=Math.min(1,p.l/30);cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2)}
+    else if(p.t==='p'){p.ph+=.05;p.x+=Math.sin(p.ph)*1.6;p.y+=p.vy;p.r+=p.vr;cx.globalAlpha=Math.min(1,p.l/30);cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.beginPath();cx.ellipse(0,0,p.s,p.s/2,0,0,6.28);cx.fill()}
+    else{p.x+=p.vx;p.y+=p.vy;p.vx*=.97;p.vy*=.97;p.ph+=.25;cx.globalAlpha=Math.min(1,p.l/30)*(.6+.4*Math.sin(p.ph));cx.fillStyle=p.c;cx.shadowColor='#ffd23f';cx.shadowBlur=14;star(p.x,p.y,p.s*(.7+.3*Math.sin(p.ph)))}
+    cx.restore();
+  }
+  if(P.length)requestAnimationFrame(tick);else{run=false;cx.clearRect(0,0,cv.width,cv.height)}
+}
+
+load();render();
+</script>
+</body>
+</html>
